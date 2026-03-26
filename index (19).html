@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060c18">
+<link rel="manifest" href="/manifest.json">
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="العيادة">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<!-- Android PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<title>🦷 عيادة الأسنان</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   DESIGN SYSTEM
+══════════════════════════════════════════════ */
+:root {
+  --bg:          #060c18;
+  --surface:     #0d1628;
+  --card:        #111e36;
+  --elevated:    #172240;
+  --border:      rgba(255,255,255,0.07);
+  --border-hi:   rgba(255,255,255,0.14);
+
+  --cyan:        #06c5d9;
+  --cyan-dim:    #0597a7;
+  --cyan-glow:   rgba(6,197,217,0.14);
+  --purple:      #8b6dff;
+  --purple-glow: rgba(139,109,255,0.14);
+  --green:       #10d98a;
+  --green-glow:  rgba(16,217,138,0.12);
+  --amber:       #f59e0b;
+  --amber-glow:  rgba(245,158,11,0.12);
+  --red:         #f04060;
+  --red-glow:    rgba(240,64,96,0.12);
+  --blue:        #3b82f6;
+
+  --text:        #e8f0ff;
+  --text-2:      rgba(232,240,255,0.6);
+  --text-3:      rgba(232,240,255,0.35);
+
+  --r-sm:  8px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  26px;
+
+  --nav-h: 76px;
+  --hdr-h: 62px;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; width:100%; overflow:hidden; font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); font-size:15px; }
+
+/* ── APP SHELL ── */
+#app{ height:100%; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ── AMBIENT ── */
+.amb{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.amb::before{ content:''; position:absolute; top:-20%; right:-15%; width:55%; height:55%; background:radial-gradient(ellipse,rgba(6,197,217,0.07) 0%,transparent 70%); animation:dft1 14s ease-in-out infinite alternate; }
+.amb::after { content:''; position:absolute; bottom:-15%; left:-10%; width:45%; height:45%; background:radial-gradient(ellipse,rgba(139,109,255,0.06) 0%,transparent 70%); animation:dft2 18s ease-in-out infinite alternate; }
+@keyframes dft1{ from{transform:translate(0,0)} to{transform:translate(-6%,9%)} }
+@keyframes dft2{ from{transform:translate(0,0)} to{transform:translate(7%,-6%)} }
+
+/* ── HEADER ── */
+.hdr{ height:var(--hdr-h); display:flex; align-items:center; justify-content:space-between; padding:0 18px; background:rgba(6,12,24,0.92); backdrop-filter:blur(24px); border-bottom:1px solid var(--border); z-index:100; flex-shrink:0; }
+.hdr-logo{ display:flex; align-items:center; gap:10px; }
+.hdr-icon{ width:38px; height:38px; background:linear-gradient(135deg,var(--cyan),var(--purple)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 4px 16px rgba(6,197,217,0.28); }
+.hdr-name{ font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+.hdr-date{ font-size:11px; color:var(--text-3); font-weight:500; }
+.hdr-clock{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--cyan); background:var(--cyan-glow); padding:6px 13px; border-radius:20px; border:1px solid rgba(6,197,217,0.2); }
+
+/* ── SCREENS ── */
+.screens{ flex:1; overflow:hidden; position:relative; z-index:1; }
+.screen{ position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; padding-bottom:calc(var(--nav-h) + 16px); opacity:0; transform:translateY(12px); pointer-events:none; transition:opacity .28s ease, transform .28s ease; -webkit-overflow-scrolling:touch; }
+.screen.active{ opacity:1; transform:translateY(0); pointer-events:all; }
+.sc{ padding:14px 14px 0; }
+
+/* ── NAV ── */
+.nav{ height:var(--nav-h); background:rgba(11,18,36,0.96); backdrop-filter:blur(28px); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-around; padding:0 4px; padding-bottom:env(safe-area-inset-bottom); z-index:100; flex-shrink:0; }
+.nb{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 10px; border-radius:var(--r-md); background:none; border:none; color:var(--text-3); cursor:pointer; transition:all .22s; min-width:54px; position:relative; }
+.nb.active{ color:var(--cyan); background:var(--cyan-glow); }
+.nb.active::before{ content:''; position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:28px; height:2px; background:var(--cyan); border-radius:0 0 3px 3px; }
+.nb-ico{ font-size:20px; line-height:1; }
+.nb-lbl{ font-size:10px; font-weight:700; }
+
+/* ── CARDS ── */
+.card{ background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg); padding:16px; margin-bottom:10px; position:relative; overflow:hidden; transition:transform .18s, border-color .18s; }
+.card:active{ transform:scale(0.985); }
+.card-accent{ position:absolute; top:0; right:0; width:3px; height:100%; border-radius:0 var(--r-lg) var(--r-lg) 0; }
+
+/* ── GRID ── */
+.g2{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
+.g3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+.stat-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg); padding:14px; }
+.stat-lbl{ font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.stat-val{ font-size:22px; font-weight:900; letter-spacing:-1px; line-height:1; }
+.stat-sub{ font-size:11px; color:var(--text-3); margin-top:3px; }
+
+/* ── HERO ── */
+.hero{ background:linear-gradient(135deg,var(--card),var(--elevated)); border:1px solid var(--border-hi); border-radius:var(--r-xl); padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
+.hero::before{ content:''; position:absolute; top:-40%; right:-15%; width:180px; height:180px; background:radial-gradient(circle,rgba(6,197,217,0.09) 0%,transparent 70%); }
+.hero-greet{ font-size:12px; color:var(--text-3); margin-bottom:3px; }
+.hero-title{ font-size:21px; font-weight:900; letter-spacing:-.6px; margin-bottom:10px; }
+.pills{ display:flex; gap:7px; flex-wrap:wrap; }
+
+/* ── SECTION TITLE ── */
+.sec-title{ font-size:17px; font-weight:800; color:var(--text); margin-bottom:12px; margin-top:4px; letter-spacing:-.4px; display:flex; align-items:center; justify-content:space-between; }
+.sec-sub{ font-size:12px; color:var(--text-3); font-weight:400; }
+
+/* ── LIST ITEM ── */
+.li{ background:var(--card); border:1px solid var(--border); border-radius:var(--r-md); padding:12px 14px; margin-bottom:7px; display:flex; align-items:center; gap:11px; transition:all .18s; cursor:pointer; }
+.li:active{ background:var(--elevated); }
+.li-ico{ width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.li-body{ flex:1; min-width:0; }
+.li-title{ font-size:14px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.li-sub{ font-size:11px; color:var(--text-3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.li-end{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+
+/* ── BADGE / CHIP ── */
+.chip{ display:inline-block; padding:3px 9px; border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.3px; }
+.c-cyan  { background:var(--cyan-glow);   color:var(--cyan);   border:1px solid rgba(6,197,217,.25); }
+.c-purple{ background:var(--purple-glow); color:var(--purple); border:1px solid rgba(139,109,255,.25); }
+.c-green { background:var(--green-glow);  color:var(--green);  border:1px solid rgba(16,217,138,.25); }
+.c-amber { background:var(--amber-glow);  color:var(--amber);  border:1px solid rgba(245,158,11,.25); }
+.c-red   { background:var(--red-glow);    color:var(--red);    border:1px solid rgba(240,64,96,.25); }
+
+/* ── PROGRESS ── */
+.prog-wrap{ height:7px; background:rgba(255,255,255,.06); border-radius:99px; overflow:hidden; margin-top:9px; }
+.prog-bar{ height:100%; border-radius:99px; transition:width .8s cubic-bezier(.4,0,.2,1); position:relative; }
+.prog-bar::after{ content:''; position:absolute; top:0; right:0; width:16px; height:100%; background:rgba(255,255,255,.35); border-radius:99px; animation:shm 2.4s ease-in-out infinite; }
+@keyframes shm{ 0%,100%{opacity:0} 50%{opacity:1} }
+
+/* ── BUTTONS ── */
+.btn{ width:100%; padding:14px; border-radius:var(--r-md); border:none; font-family:'Tajawal',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all .18s; letter-spacing:-.2px; }
+.btn:active{ transform:scale(.97); }
+.btn-primary{ background:linear-gradient(135deg,var(--cyan),var(--cyan-dim)); color:#fff; box-shadow:0 6px 20px rgba(6,197,217,.3); }
+.btn-purple{ background:linear-gradient(135deg,var(--purple),#6b4fff); color:#fff; box-shadow:0 6px 20px rgba(139,109,255,.3); }
+.btn-green{ background:linear-gradient(135deg,var(--green),#0aaa6a); color:#fff; box-shadow:0 6px 20px rgba(16,217,138,.25); }
+.btn-red{ background:linear-gradient(135deg,var(--red),#c0304a); color:#fff; box-shadow:0 6px 20px rgba(240,64,96,.28); }
+.btn-ghost{ background:var(--elevated); color:var(--text-2); border:1px solid var(--border); }
+.btn-sm{ padding:8px 15px; font-size:12px; width:auto; border-radius:var(--r-sm); }
+
+/* ── FAB ── */
+.fab{ position:fixed; bottom:calc(var(--nav-h) + 14px); left:18px; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--purple)); border:none; color:#fff; font-size:26px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 22px rgba(6,197,217,.38); z-index:150; transition:transform .2s; }
+.fab:active{ transform:scale(.88); }
+
+/* ── MODAL ── */
+.modal-ov{ position:fixed; inset:0; background:rgba(6,12,24,.86); backdrop-filter:blur(8px); z-index:500; display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition:opacity .28s; }
+.modal-ov.open{ opacity:1; pointer-events:all; }
+.modal-sheet{ width:100%; background:var(--surface); border-radius:var(--r-xl) var(--r-xl) 0 0; border-top:1px solid var(--border-hi); padding:14px 18px 38px; transform:translateY(100%); transition:transform .38s cubic-bezier(.32,.72,0,1); max-height:92vh; overflow-y:auto; }
+.modal-ov.open .modal-sheet{ transform:translateY(0); }
+.modal-handle{ width:38px; height:4px; background:var(--border-hi); border-radius:99px; margin:0 auto 18px; }
+.modal-title{ font-size:19px; font-weight:800; margin-bottom:18px; letter-spacing:-.4px; }
+
+/* ── FORM ── */
+.fg{ margin-bottom:13px; }
+.fl{ display:block; font-size:11px; font-weight:700; color:var(--text-2); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px; }
+.fi,.fs,.fta{ width:100%; background:var(--elevated); border:1px solid var(--border); border-radius:var(--r-md); padding:12px 14px; color:var(--text); font-family:'Tajawal',sans-serif; font-size:15px; font-weight:500; outline:none; transition:border-color .2s, box-shadow .2s; -webkit-appearance:none; }
+.fi:focus,.fs:focus,.fta:focus{ border-color:var(--cyan); box-shadow:0 0 0 3px var(--cyan-glow); }
+.fs option{ background:var(--surface); color:var(--text); }
+.fta{ min-height:76px; resize:none; }
+.calc-preview{ background:rgba(6,197,217,.06); border:1px solid rgba(6,197,217,.15); border-radius:var(--r-md); padding:12px; display:flex; justify-content:space-around; text-align:center; margin-bottom:14px; }
+.cp-lbl{ font-size:10px; color:var(--text-3); margin-bottom:3px; }
+.cp-val{ font-size:16px; font-weight:800; }
+.pay-btns{ display:flex; gap:7px; margin-bottom:13px; }
+.pay-btn{ flex:1; padding:10px; border-radius:11px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+.pay-btn.sel{ border:2px solid var(--cyan)!important; background:rgba(6,197,217,.1); color:var(--cyan); }
+.pay-btn.unsel{ border:1px solid var(--border); background:var(--elevated); color:var(--text-3); }
+
+/* ── TOGGLE ── */
+.tgl-group{ display:flex; background:var(--elevated); border-radius:var(--r-md); padding:3px; margin-bottom:13px; }
+.tgl-opt{ flex:1; padding:9px; text-align:center; font-size:12px; font-weight:700; border-radius:11px; cursor:pointer; color:var(--text-3); border:none; background:none; font-family:'Tajawal',sans-serif; transition:all .2s; }
+.tgl-opt.active{ background:var(--card); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,.3); }
+
+/* ── SEARCH ── */
+.search-wrap{ position:relative; margin-bottom:12px; }
+.search-ico{ position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:16px; pointer-events:none; }
+.search-input{ padding-right:40px!important; }
+.search-results{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; margin-top:4px; display:none; }
+.search-results.show{ display:block; }
+.sr-item{ padding:12px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; }
+.sr-item:last-child{ border-bottom:none; }
+.sr-item:active{ background:var(--elevated); }
+.sr-name{ font-size:13px; font-weight:700; }
+.sr-sub{ font-size:11px; color:var(--text-3); margin-top:2px; }
+
+/* ── TOAST ── */
+.toast{ position:fixed; top:calc(var(--hdr-h) + 10px); left:50%; transform:translateX(-50%) translateY(-16px); background:var(--elevated); border:1px solid var(--border-hi); border-radius:var(--r-md); padding:11px 20px; font-size:13px; font-weight:600; z-index:1000; opacity:0; transition:all .28s; white-space:nowrap; max-width:92vw; text-align:center; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.ok  { border-color:var(--green); color:var(--green); }
+.toast.err { border-color:var(--red);   color:var(--red); }
+
+/* ── DIVIDER ── */
+.div{ height:1px; background:var(--border); margin:13px 0; }
+
+/* ── LOADING ── */
+.loading{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:44px 20px; gap:12px; color:var(--text-3); font-size:13px; }
+.spinner{ width:30px; height:30px; border:3px solid var(--border); border-top-color:var(--cyan); border-radius:50%; animation:spin .75s linear infinite; }
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+/* ── EMPTY ── */
+.empty{ text-align:center; padding:50px 20px; color:var(--text-3); }
+.empty-ico{ font-size:46px; margin-bottom:10px; opacity:.35; }
+.empty-txt{ font-size:14px; font-weight:700; }
+.empty-sub{ font-size:12px; margin-top:5px; }
+
+/* ── CONFIRM ── */
+.confirm-ov{ position:fixed; inset:0; background:rgba(6,12,24,.8); z-index:600; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .25s; }
+.confirm-ov.open{ opacity:1; pointer-events:all; }
+.confirm-box{ background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--r-xl); padding:26px 22px; max-width:320px; width:100%; text-align:center; transform:scale(.92); transition:transform .25s; }
+.confirm-ov.open .confirm-box{ transform:scale(1); }
+.confirm-box p{ font-size:14px; line-height:1.75; margin-bottom:20px; color:var(--text-2); }
+.confirm-btns{ display:flex; gap:10px; }
+
+/* ── APPT STATUS DOTS ── */
+.dot-confirmed{ color:var(--green); }
+.dot-waiting  { color:var(--amber); }
+.dot-cancelled{ color:var(--red);   }
+.dot-done     { color:var(--cyan);  }
+
+/* ── STAT SECTION ── */
+.stat-sec{ background:var(--card); border-radius:var(--r-lg); border:1px solid var(--border); padding:14px; margin-bottom:10px; }
+.stat-row{ display:flex; justify-content:space-between; padding:7px 0; font-size:13px; }
+.stat-row+.stat-row{ border-top:1px solid var(--border); }
+.stat-row .sv{ font-weight:700; }
+
+/* ── TOP TREAT ── */
+.treat-row{ display:flex; align-items:center; gap:9px; margin-bottom:9px; }
+.treat-name{ font-size:12px; font-weight:600; min-width:100px; }
+.treat-bar{ flex:1; }
+.treat-cnt{ font-size:11px; font-weight:700; min-width:28px; text-align:left; color:var(--cyan); }
+
+/* COLORS */
+.c-c{ color:var(--cyan); }
+.c-p{ color:var(--purple); }
+.c-g{ color:var(--green); }
+.c-a{ color:var(--amber); }
+.c-r{ color:var(--red); }
+.c-m{ color:var(--text-3); }
+.fw8{ font-weight:800; }
+
+::-webkit-scrollbar{ width:0; }
+@supports (padding-bottom: env(safe-area-inset-bottom)){ .nav{ padding-bottom:calc(6px + env(safe-area-inset-bottom)); } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="amb"></div>
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">🦷</div>
+      <div>
+        <div class="hdr-name" id="clinicNameHdr">عيادة الأسنان</div>
+        <div class="hdr-date" id="todayDateHdr"></div>
+      </div>
+    </div>
+    <div class="hdr-clock" id="clockHdr">--:--</div>
+  </header>
+
+  <!-- SCREENS -->
+  <div class="screens">
+
+    <!-- ══ TODAY ══ -->
+    <div class="screen active" id="sc-today">
+      <div class="sc">
+        <!-- Hero KPI -->
+        <div class="hero">
+          <div class="hero-greet" id="greetTxt">صباح الخير</div>
+          <div class="hero-title">زيارات اليوم 🦷</div>
+          <div class="pills" id="todayPills">
+            <span class="chip c-cyan">⏳ جاري التحميل...</span>
+          </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="g2" id="todayKpiGrid">
+          <div class="stat-card"><div class="stat-lbl">👥 المراجعين</div><div class="stat-val c-c" id="kpi-count">0</div></div>
+          <div class="stat-card"><div class="stat-lbl">💰 الحسابات</div><div class="stat-val c-p" id="kpi-total">0</div></div>
+          <div class="stat-card"><div class="stat-lbl">👨‍⚕️ حصة الطبيب</div><div class="stat-val c-g" id="kpi-doc">0</div></div>
+          <div class="stat-card"><div class="stat-lbl">🏥 صافي العيادة</div><div class="stat-val c-a" id="kpi-net">0</div></div>
+        </div>
+
+        <!-- Today Patients List -->
+        <div class="sec-title">
+          <span>قائمة المراجعين</span>
+        </div>
+        <div id="todayList">
+          <div class="loading"><div class="spinner"></div>جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ APPOINTMENTS ══ -->
+    <div class="screen" id="sc-appt">
+      <div class="sc">
+        <div class="sec-title">
+          <span>المواعيد</span>
+          <button class="btn btn-primary btn-sm" onclick="openModal('m-add-appt')">+ موعد</button>
+        </div>
+
+        <!-- Date Selector -->
+        <div class="fg" style="margin-bottom:14px">
+          <input type="date" class="fi" id="apptDateFilter" onchange="loadAppts()">
+        </div>
+
+        <div id="apptList">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ARCHIVE ══ -->
+    <div class="screen" id="sc-archive">
+      <div class="sc">
+        <div class="sec-title">أرشيف الزيارات</div>
+
+        <!-- Search -->
+        <div class="search-wrap" style="margin-bottom:12px">
+          <span class="search-ico">🔍</span>
+          <input type="text" class="fi search-input" id="archSearch"
+            placeholder="ابحث عن مريض..."
+            oninput="onArchSearch(this.value)">
+          <div class="search-results" id="archSearchResults"></div>
+        </div>
+
+        <!-- Month filter -->
+        <div class="fg" style="margin-bottom:14px">
+          <input type="month" class="fi" id="archMonthFilter" onchange="loadArchive()">
+        </div>
+
+        <div id="archiveList">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STATS ══ -->
+    <div class="screen" id="sc-stats">
+      <div class="sc">
+        <div class="sec-title">
+          <span>الجرد الشهري</span>
+        </div>
+
+        <!-- Month selector -->
+        <div class="fg" style="margin-bottom:14px">
+          <input type="month" class="fi" id="statsMonthFilter" onchange="loadStats()">
+        </div>
+
+        <div id="statsContent">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MORE ══ -->
+    <div class="screen" id="sc-more">
+      <div class="sc">
+        <div class="sec-title">الإعدادات</div>
+
+        <!-- API Config -->
+        <div class="card" style="margin-bottom:10px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px">🔗 ربط Google Sheets</div>
+          <div class="fg">
+            <label class="fl">رابط الـ Apps Script</label>
+            <input type="url" class="fi" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:12px">
+          </div>
+          <button class="btn btn-primary" onclick="saveApiCfg()" style="margin-top:4px">💾 حفظ الرابط</button>
+        </div>
+
+        <!-- Clinic Settings -->
+        <div class="card" style="margin-bottom:10px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px">⚙️ إعدادات العيادة</div>
+          <div class="fg">
+            <label class="fl">اسم العيادة</label>
+            <input type="text" class="fi" id="cfgClinicName" placeholder="عيادة الأسنان">
+          </div>
+          <div class="fg">
+            <label class="fl">نسبة حصة الطبيب %</label>
+            <input type="number" class="fi" id="cfgDocRatio" min="0" max="100" value="50" placeholder="50">
+          </div>
+          <button class="btn btn-green" onclick="saveClinicSettings()">💾 حفظ الإعدادات</button>
+        </div>
+
+        <!-- Export -->
+        <div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openModal('m-export')">
+          <div class="d-flex" style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:26px">📊</span>
+              <div>
+                <div style="font-size:14px;font-weight:700">تصدير التقارير</div>
+                <div style="font-size:11px;color:var(--text-3)">Excel للشهر المحدد</div>
+              </div>
+            </div>
+            <span style="color:var(--text-3)">›</span>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="card">
+          <div style="font-size:12px;color:var(--text-3);line-height:1.8">
+            🦷 Dental Clinic OS v1.0<br>
+            مبني خصيصاً لعيادتك<br>
+            <span id="cfgStatus" style="color:var(--green)">⏳ جاري الفحص...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB — إضافة مراجع -->
+  <button class="fab" id="fabBtn" onclick="openModal('m-add-visit')">+</button>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nb active" data-s="today" onclick="goTo('today')">
+      <span class="nb-ico">📋</span><span class="nb-lbl">اليوم</span>
+    </button>
+    <button class="nb" data-s="appt" onclick="goTo('appt')">
+      <span class="nb-ico">📅</span><span class="nb-lbl">المواعيد</span>
+    </button>
+    <button class="nb" data-s="archive" onclick="goTo('archive')">
+      <span class="nb-ico">🗂️</span><span class="nb-lbl">الأرشيف</span>
+    </button>
+    <button class="nb" data-s="stats" onclick="goTo('stats')">
+      <span class="nb-ico">📊</span><span class="nb-lbl">الجرد</span>
+    </button>
+    <button class="nb" data-s="more" onclick="goTo('more')">
+      <span class="nb-ico">⚙️</span><span class="nb-lbl">المزيد</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- Add Visit -->
+<div class="modal-ov" id="m-add-visit" onclick="closeOuter(event,'m-add-visit')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="visitModalTitle">➕ مراجع جديد</div>
+
+    <!-- Patient Search -->
+    <div class="fg">
+      <label class="fl">اسم المريض</label>
+      <div class="search-wrap" style="margin-bottom:0">
+        <span class="search-ico">👤</span>
+        <input type="text" class="fi search-input" id="vPatientName"
+          placeholder="اكتب الاسم (يبحث في القدامى)..."
+          oninput="onPatientSearch(this.value)">
+        <div class="search-results" id="patientSearchResults"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">العلاج / الحالة</label>
+      <input type="text" class="fi" id="vTreatment" placeholder="مثال: حشوة، تقليح، خلع...">
+    </div>
+
+    <div class="g2" style="gap:10px;margin-bottom:13px">
+      <div>
+        <label class="fl">الحساب الكلي (IQD)</label>
+        <input type="number" class="fi" id="vTotal" placeholder="0" min="0" oninput="calcPreview()">
+      </div>
+      <div>
+        <label class="fl">تكلفة المواد (IQD)</label>
+        <input type="number" class="fi" id="vMaterials" placeholder="0" min="0" oninput="calcPreview()">
+      </div>
+    </div>
+
+    <!-- Calc Preview -->
+    <div class="calc-preview" id="calcPreview">
+      <div><div class="cp-lbl">👨‍⚕️ حصة الطبيب</div><div class="cp-val c-g" id="prevDoc">0</div></div>
+      <div><div class="cp-lbl">🏥 صافي العيادة</div><div class="cp-val c-a" id="prevNet">0</div></div>
+      <div><div class="cp-lbl">📊 النسبة</div><div class="cp-val c-c" id="prevRatio">50%</div></div>
+    </div>
+
+    <!-- Payment -->
+    <label class="fl">حالة الدفع</label>
+    <div class="pay-btns" id="payBtns">
+      <button class="pay-btn sel" onclick="selectPay('مدفوع',this)">✅ مدفوع</button>
+      <button class="pay-btn unsel" onclick="selectPay('جزئي',this)">💛 جزئي</button>
+      <button class="pay-btn unsel" onclick="selectPay('غير مدفوع',this)">❌ غير مدفوع</button>
+    </div>
+
+    <!-- Partial amount (shown when جزئي) -->
+    <div class="fg" id="partialGroup" style="display:none">
+      <label class="fl">المبلغ المدفوع جزئياً</label>
+      <input type="number" class="fi" id="vPaidAmount" placeholder="0" min="0">
+    </div>
+
+    <div class="fg">
+      <label class="fl">ملاحظات (اختياري)</label>
+      <textarea class="fta" id="vNotes" placeholder="أي ملاحظات..."></textarea>
+    </div>
+
+    <input type="hidden" id="vVisitId">
+    <button class="btn btn-primary" onclick="submitVisit()">✅ حفظ</button>
+  </div>
+</div>
+
+<!-- Add Appointment -->
+<div class="modal-ov" id="m-add-appt" onclick="closeOuter(event,'m-add-appt')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="apptModalTitle">📅 موعد جديد</div>
+
+    <div class="fg">
+      <label class="fl">اسم المريض</label>
+      <input type="text" class="fi" id="aPatientName" placeholder="اسم المريض">
+    </div>
+    <div class="fg">
+      <label class="fl">رقم الهاتف</label>
+      <input type="tel" class="fi" id="aPhone" placeholder="07XX XXX XXXX">
+    </div>
+    <div class="g2" style="gap:10px;margin-bottom:13px">
+      <div>
+        <label class="fl">التاريخ</label>
+        <input type="date" class="fi" id="aDate">
+      </div>
+      <div>
+        <label class="fl">الوقت</label>
+        <input type="time" class="fi" id="aTime">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">نوع العلاج</label>
+      <input type="text" class="fi" id="aTreatment" placeholder="اختياري — مثال: تقليح، حشوة...">
+    </div>
+    <div class="fg">
+      <label class="fl">الحالة</label>
+      <select class="fs" id="aStatus">
+        <option value="مؤكد">✅ مؤكد</option>
+        <option value="بانتظار التأكيد">⏳ بانتظار التأكيد</option>
+        <option value="ملغي">❌ ملغي</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">ملاحظات</label>
+      <textarea class="fta" id="aNotes" placeholder="أي ملاحظات..."></textarea>
+    </div>
+    <input type="hidden" id="aApptId">
+    <button class="btn btn-purple" onclick="submitAppt()">📅 حفظ الموعد</button>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-ov" id="m-export" onclick="closeOuter(event,'m-export')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📊 تصدير Excel</div>
+    <div class="fg">
+      <label class="fl">الشهر</label>
+      <input type="month" class="fi" id="exportMonth">
+    </div>
+    <div style="background:rgba(6,197,217,.06);border:1px solid rgba(6,197,217,.15);border-radius:var(--r-md);padding:13px;margin-bottom:16px;font-size:13px;color:var(--text-2);line-height:1.7">
+      📋 يصدّر ملف Excel يشمل:<br>
+      • ملخص الشهر المالي<br>
+      • جدول جميع الزيارات مع التفاصيل<br>
+      • حصة الطبيب وصافي العيادة
+    </div>
+    <button class="btn btn-green" onclick="exportExcel()">⬇️ تصدير وتحميل</button>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="confirm-ov" id="confirmBox">
+  <div class="confirm-box">
+    <p id="confirmTxt">هل تريد الحذف؟</p>
+    <div class="confirm-btns">
+      <button class="btn btn-red" style="flex:1" onclick="runConfirm()">نعم — احذف</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeConfirm()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  STATE & CONFIG
+// ══════════════════════════════════════════════════════
+
+const APP = {
+  apiUrl   : localStorage.getItem('dental_api') || '',
+  settings : JSON.parse(localStorage.getItem('dental_settings') || '{"clinic_name":"عيادة الأسنان","doc_ratio":0.5}'),
+  todayVisits: [],
+  currentView: 'today',
+};
+
+let confirmCallback = null;
+let paymentSelected = 'مدفوع';
+let searchTimer     = null;
+
+// ══ INIT ══
+document.addEventListener('DOMContentLoaded', () => {
+  initClock();
+  initDates();
+  applySettings();
+  loadToday();
+  checkConnection();
+});
+
+// ══════════════════════════════════════════════════════
+//  CLOCK & DATE
+// ══════════════════════════════════════════════════════
+
+function initClock() {
+  const tick = () => {
+    const n = new Date();
+    document.getElementById('clockHdr').textContent =
+      String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+    const h = n.getHours();
+    document.getElementById('greetTxt').textContent =
+      h < 12 ? '🌅 صباح الخير،' : h < 17 ? '☀️ مساء النور،' : '🌙 مساء الخير،';
+  };
+  tick();
+  setInterval(tick, 30000);
+}
+
+function initDates() {
+  const today = getToday();
+  const now   = new Date();
+  document.getElementById('todayDateHdr').textContent =
+    now.toLocaleDateString('ar-IQ', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  document.getElementById('apptDateFilter').value    = today;
+  document.getElementById('archMonthFilter').value   = today.substring(0,7);
+  document.getElementById('statsMonthFilter').value  = today.substring(0,7);
+  document.getElementById('exportMonth').value       = today.substring(0,7);
+
+  // Shift date defaults
+  document.getElementById('aDate').value = today;
+  const t = new Date();
+  const hm = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+  document.getElementById('aTime').value = hm;
+}
+
+function getToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function fmt(n) {
+  if (!n && n !== 0) return '0';
+  return Number(n).toLocaleString('en-US');
+}
+
+// ══════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════
+
+async function apiGet(params) {
+  if (!APP.apiUrl) return null;
+  try {
+    const qs  = new URLSearchParams({ ...params, t: Date.now() }).toString();
+    const res = await fetch(APP.apiUrl + '?' + qs, { redirect: 'follow', cache: 'no-store' });
+    const j   = await res.json();
+    return j.ok ? j.data : null;
+  } catch(e) { return null; }
+}
+
+async function apiPost(body) {
+  if (!APP.apiUrl) return null;
+  try {
+    const res = await fetch(APP.apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      redirect: 'follow',
+    });
+    const j = await res.json();
+    return j.ok ? j.data : null;
+  } catch(e) { return null; }
+}
+
+async function checkConnection() {
+  if (!APP.apiUrl) {
+    document.getElementById('cfgStatus').textContent = '⚠️ لم يُضف رابط API بعد';
+    document.getElementById('cfgStatus').style.color = 'var(--amber)';
+    return;
+  }
+  const data = await apiGet({ action: 'getSettings' });
+  const el   = document.getElementById('cfgStatus');
+  if (data) {
+    el.textContent = '✅ متصل بـ Google Sheets';
+    el.style.color = 'var(--green)';
+    APP.settings = { ...APP.settings, ...data };
+    applySettings();
+  } else {
+    el.textContent = '❌ تعذّر الاتصال — تحقق من الرابط';
+    el.style.color = 'var(--red)';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════════════
+
+function applySettings() {
+  const s = APP.settings;
+  const name = s.clinic_name || 'عيادة الأسنان';
+  document.getElementById('clinicNameHdr').textContent = name;
+  document.title = '🦷 ' + name;
+  document.getElementById('cfgClinicName').value = name;
+  document.getElementById('cfgDocRatio').value   = Math.round((parseFloat(s.doc_ratio || 0.5)) * 100);
+  document.getElementById('cfgApiUrl').value     = APP.apiUrl;
+  calcPreview(); // recalc with new ratio
+}
+
+function saveApiCfg() {
+  const url = document.getElementById('cfgApiUrl').value.trim();
+  APP.apiUrl = url;
+  localStorage.setItem('dental_api', url);
+  toast('✅ تم حفظ الرابط', 'ok');
+  checkConnection();
+}
+
+async function saveClinicSettings() {
+  const name  = document.getElementById('cfgClinicName').value.trim() || 'عيادة الأسنان';
+  const ratio = parseFloat(document.getElementById('cfgDocRatio').value) / 100;
+  APP.settings.clinic_name = name;
+  APP.settings.doc_ratio   = ratio;
+  localStorage.setItem('dental_settings', JSON.stringify(APP.settings));
+  document.getElementById('clinicNameHdr').textContent = name;
+  document.title = '🦷 ' + name;
+  calcPreview();
+  if (APP.apiUrl) {
+    await apiPost({ action: 'saveSettings', settings: { clinic_name: name, doc_ratio: ratio } });
+  }
+  toast('✅ تم حفظ الإعدادات', 'ok');
+}
+
+// ══════════════════════════════════════════════════════
+//  TODAY VISITS
+// ══════════════════════════════════════════════════════
+
+async function loadToday() {
+  const today = getToday();
+  let visits;
+
+  if (APP.apiUrl) {
+    visits = await apiGet({ action: 'getTodayVisits' });
+  }
+
+  // Fallback: localStorage
+  if (!visits) {
+    visits = getLocalVisits(today);
+  }
+
+  APP.todayVisits = visits || [];
+  renderTodayKPI();
+  renderTodayList();
+}
+
+function renderTodayKPI() {
+  const v = APP.todayVisits;
+  const total = v.reduce((s,p)=>s+(+p.total||0),0);
+  const mats  = v.reduce((s,p)=>s+(+p.materials||0),0);
+  const doc   = v.reduce((s,p)=>s+(+p.doc_share||(+p.total-+p.materials)/2||0),0);
+  const net   = v.reduce((s,p)=>s+(+p.clinic_net||(+p.total-+p.materials)/2||0),0);
+  const paid  = v.filter(p=>p.payment_status==='مدفوع').length;
+  const unp   = v.filter(p=>p.payment_status==='غير مدفوع').length;
+
+  document.getElementById('kpi-count').textContent = v.length;
+  document.getElementById('kpi-total').textContent = fmt(total);
+  document.getElementById('kpi-doc').textContent   = fmt(Math.round(doc));
+  document.getElementById('kpi-net').textContent   = fmt(Math.round(net));
+
+  document.getElementById('todayPills').innerHTML =
+    `<span class="chip c-cyan">👥 ${v.length} مراجع</span>
+     <span class="chip c-green">✅ ${paid} مدفوع</span>
+     ${unp > 0 ? `<span class="chip c-red">❌ ${unp} غير مدفوع</span>` : ''}
+     <span class="chip c-purple">💰 ${fmt(total)} IQD</span>`;
+}
+
+function renderTodayList() {
+  const container = document.getElementById('todayList');
+  const v = APP.todayVisits;
+
+  if (!v.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-ico">🦷</div><div class="empty-txt">لا مراجعين اليوم</div><div class="empty-sub">اضغط + لإضافة مراجع جديد</div></div>`;
+    return;
+  }
+
+  container.innerHTML = v.map((p, i) => {
+    const pColor = p.payment_status === 'مدفوع' ? 'c-green' : p.payment_status === 'جزئي' ? 'c-amber' : 'c-red';
+    const doc    = p.doc_share !== undefined ? p.doc_share : Math.round((+p.total - +p.materials) * (APP.settings.doc_ratio || 0.5));
+    return `<div class="li" onclick="openEditVisit(${i})">
+      <div class="li-ico" style="background:var(--cyan-glow)">${i+1}</div>
+      <div class="li-body">
+        <div class="li-title">${p.patient_name || p.name || '---'}</div>
+        <div class="li-sub">🦷 ${p.treatment||'—'} | 👨‍⚕️ ${fmt(doc)} IQD</div>
+      </div>
+      <div class="li-end">
+        <span class="chip ${pColor}">${p.payment_status||''}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--purple)">${fmt(p.total)}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:-3px;margin-bottom:7px;padding:0 4px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="event.stopPropagation();openEditVisit(${i})">✏️ تعديل</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red)" onclick="event.stopPropagation();confirmDeleteVisit('${p.visit_id||p.id||i}',${i})">🗑️ حذف</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  ADD / EDIT VISIT
+// ══════════════════════════════════════════════════════
+
+function openEditVisit(idx) {
+  const p = APP.todayVisits[idx];
+  if (!p) return;
+  document.getElementById('visitModalTitle').textContent = '✏️ تعديل الزيارة';
+  document.getElementById('vPatientName').value = p.patient_name || p.name || '';
+  document.getElementById('vTreatment').value   = p.treatment || '';
+  document.getElementById('vTotal').value       = p.total || '';
+  document.getElementById('vMaterials').value   = p.materials || '';
+  document.getElementById('vNotes').value       = p.notes || '';
+  document.getElementById('vVisitId').value     = p.visit_id || p.id || '';
+
+  paymentSelected = p.payment_status || 'مدفوع';
+  document.querySelectorAll('.pay-btn').forEach(b => {
+    b.classList.toggle('sel',   b.textContent.includes(paymentSelected));
+    b.classList.toggle('unsel', !b.textContent.includes(paymentSelected));
+  });
+  document.getElementById('vPaidAmount').value  = p.paid_amount || '';
+  document.getElementById('partialGroup').style.display = paymentSelected === 'جزئي' ? 'block' : 'none';
+  calcPreview();
+  openModal('m-add-visit');
+}
+
+async function submitVisit() {
+  const name    = document.getElementById('vPatientName').value.trim();
+  const treat   = document.getElementById('vTreatment').value.trim();
+  const total   = parseFloat(document.getElementById('vTotal').value) || 0;
+  const mats    = parseFloat(document.getElementById('vMaterials').value) || 0;
+  const notes   = document.getElementById('vNotes').value.trim();
+  const visitId = document.getElementById('vVisitId').value;
+  const paid    = parseFloat(document.getElementById('vPaidAmount').value) || 0;
+
+  if (!name) { toast('❌ أدخل اسم المريض', 'err'); return; }
+
+  const ratio    = parseFloat(APP.settings.doc_ratio || 0.5);
+  const net      = total - mats;
+  const docShare = Math.round(net * ratio * 10) / 10;
+  const clinicNet= Math.round(net * (1 - ratio) * 10) / 10;
+
+  const body = {
+    action: visitId ? 'editVisit' : 'addVisit',
+    visit_id      : visitId || undefined,
+    patient_name  : name,
+    treatment     : treat,
+    total,
+    materials     : mats,
+    doc_ratio     : ratio,
+    doc_share     : docShare,
+    clinic_net    : clinicNet,
+    payment_status: paymentSelected,
+    paid_amount   : paymentSelected === 'جزئي' ? paid : (paymentSelected === 'مدفوع' ? total : 0),
+    notes,
+    date          : getToday(),
+  };
+
+  closeModal('m-add-visit');
+  toast('⏳ جاري الحفظ...', '');
+
+  // Save to Sheets if connected
+  if (APP.apiUrl) {
+    const result = await apiPost(body);
+    if (result) {
+      body.visit_id = result.visit_id || visitId;
+    }
+  }
+
+  // Update local state
+  if (visitId) {
+    const idx = APP.todayVisits.findIndex(v => (v.visit_id || v.id) === visitId);
+    if (idx > -1) APP.todayVisits[idx] = { ...APP.todayVisits[idx], ...body };
+  } else {
+    body.visit_id = body.visit_id || 'L' + Date.now();
+    APP.todayVisits.push(body);
+    saveLocalVisits();
+  }
+
+  renderTodayKPI();
+  renderTodayList();
+
+  // Reset form
+  document.getElementById('vVisitId').value     = '';
+  document.getElementById('vPatientName').value = '';
+  document.getElementById('vTreatment').value   = '';
+  document.getElementById('vTotal').value       = '';
+  document.getElementById('vMaterials').value   = '';
+  document.getElementById('vNotes').value       = '';
+  document.getElementById('visitModalTitle').textContent = '➕ مراجع جديد';
+  paymentSelected = 'مدفوع';
+  document.querySelectorAll('.pay-btn').forEach((b,i)=>{ b.classList.toggle('sel', i===0); b.classList.toggle('unsel', i!==0); });
+
+  toast(visitId ? '✅ تم التعديل' : '✅ تم حفظ الزيارة', 'ok');
+}
+
+function confirmDeleteVisit(visitId, idx) {
+  document.getElementById('confirmTxt').innerHTML =
+    `هل تريد حذف زيارة <strong>${APP.todayVisits[idx]?.patient_name || 'هذا المراجع'}</strong>؟`;
+  confirmCallback = async () => {
+    if (APP.apiUrl && visitId && !visitId.startsWith('L')) {
+      await apiGet({ action: 'deleteVisit', visit_id: visitId });
+    }
+    APP.todayVisits.splice(idx, 1);
+    saveLocalVisits();
+    renderTodayKPI();
+    renderTodayList();
+    toast('🗑️ تم الحذف', 'ok');
+  };
+  document.getElementById('confirmBox').classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════
+//  APPOINTMENTS
+// ══════════════════════════════════════════════════════
+
+async function loadAppts() {
+  const date      = document.getElementById('apptDateFilter').value || getToday();
+  const container = document.getElementById('apptList');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  let appts = await apiGet({ action: 'getAppointments', date }) || getLocalAppts(date);
+
+  if (!appts || !appts.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">لا مواعيد في هذا اليوم</div><div class="empty-sub">اضغط "+ موعد" لإضافة موعد</div></div>`;
+    return;
+  }
+
+  const statusMap = { 'مؤكد':'✅','بانتظار التأكيد':'⏳','ملغي':'❌','حضر':'🟢' };
+  container.innerHTML = appts.map(a => {
+    const sIcon = statusMap[a.status] || '📅';
+    const sColor = a.status === 'مؤكد' ? 'c-green' : a.status === 'ملغي' ? 'c-red' : a.status === 'حضر' ? 'c-cyan' : 'c-amber';
+    return `<div class="li">
+      <div class="li-ico" style="background:var(--purple-glow)">🕐</div>
+      <div class="li-body">
+        <div class="li-title">${a.patient_name}</div>
+        <div class="li-sub">${a.time ? '🕐 '+a.time : ''} ${a.treatment ? '| 🦷 '+a.treatment : ''} ${a.phone ? '| 📞 '+a.phone : ''}</div>
+      </div>
+      <div class="li-end">
+        <span class="chip ${sColor}">${sIcon} ${a.status}</span>
+        <div style="display:flex;gap:5px;margin-top:2px">
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:11px" onclick="markApptDone('${a.appt_id}')">✅</button>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:11px;color:var(--red)" onclick="confirmDeleteAppt('${a.appt_id}','${a.patient_name}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitAppt() {
+  const name    = document.getElementById('aPatientName').value.trim();
+  const apptId  = document.getElementById('aApptId').value;
+  if (!name) { toast('❌ أدخل اسم المريض', 'err'); return; }
+
+  const body = {
+    action      : apptId ? 'editAppointment' : 'addAppointment',
+    appt_id     : apptId || undefined,
+    patient_name: name,
+    phone       : document.getElementById('aPhone').value.trim(),
+    date        : document.getElementById('aDate').value,
+    time        : document.getElementById('aTime').value,
+    treatment   : document.getElementById('aTreatment').value.trim(),
+    status      : document.getElementById('aStatus').value,
+    notes       : document.getElementById('aNotes').value.trim(),
+  };
+
+  closeModal('m-add-appt');
+  toast('⏳ جاري الحفظ...', '');
+
+  if (APP.apiUrl) {
+    await apiPost(body);
+  } else {
+    saveLocalAppt(body);
+  }
+
+  loadAppts();
+  toast('✅ تم حفظ الموعد', 'ok');
+
+  // Reset
+  document.getElementById('aApptId').value = '';
+  document.getElementById('aPatientName').value = '';
+  document.getElementById('aPhone').value = '';
+  document.getElementById('aTreatment').value = '';
+  document.getElementById('aNotes').value = '';
+  document.getElementById('apptModalTitle').textContent = '📅 موعد جديد';
+}
+
+async function markApptDone(apptId) {
+  if (APP.apiUrl) await apiGet({ action: 'updateApptStatus', appt_id: apptId, status: 'حضر' });
+  loadAppts();
+  toast('✅ تم تأكيد الحضور', 'ok');
+}
+
+function confirmDeleteAppt(apptId, name) {
+  document.getElementById('confirmTxt').innerHTML = `هل تريد حذف موعد <strong>${name}</strong>؟`;
+  confirmCallback = async () => {
+    if (APP.apiUrl) await apiGet({ action: 'deleteAppt', appt_id: apptId });
+    else deleteLocalAppt(apptId);
+    loadAppts();
+    toast('🗑️ تم الحذف', 'ok');
+  };
+  document.getElementById('confirmBox').classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════
+//  ARCHIVE
+// ══════════════════════════════════════════════════════
+
+async function loadArchive() {
+  const month     = document.getElementById('archMonthFilter').value;
+  const container = document.getElementById('archiveList');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>جاري التحميل...</div>';
+
+  let visits = null;
+  if (APP.apiUrl) {
+    visits = await apiGet({ action: 'getVisits', month });
+  }
+  if (!visits) {
+    visits = getAllLocalVisits().filter(v => v.date && v.date.startsWith(month));
+  }
+
+  if (!visits.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-txt">لا زيارات في هذا الشهر</div></div>`;
+    return;
+  }
+
+  // Group by day
+  const byDay = {};
+  visits.forEach(v => {
+    const d = v.date || '';
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(v);
+  });
+
+  const sortedDays = Object.keys(byDay).sort().reverse();
+  container.innerHTML = sortedDays.map(date => {
+    const pts   = byDay[date];
+    const tot   = pts.reduce((s,p)=>s+(+p.total||0), 0);
+    const doc   = pts.reduce((s,p)=>s+(+p.doc_share||0), 0);
+    const isToday = date === getToday();
+    return `<div class="card" style="${isToday?'border-color:rgba(6,197,217,.3)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:800">${date} ${isToday?'<span class="chip c-cyan" style="font-size:9px">اليوم</span>':''}</div>
+          <div style="font-size:11px;color:var(--text-3)">${pts.length} مراجع</div>
+        </div>
+        <div style="text-align:left">
+          <div style="font-size:16px;font-weight:800;color:var(--purple)">${fmt(tot)} <span style="font-size:10px;color:var(--text-3)">IQD</span></div>
+          <div style="font-size:11px;color:var(--green)">👨‍⚕️ ${fmt(Math.round(doc))}</div>
+        </div>
+      </div>
+      ${pts.map(p=>{
+        const pC = p.payment_status==='مدفوع'?'c-green':p.payment_status==='جزئي'?'c-amber':'c-red';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:12px">
+          <div>
+            <span style="font-weight:700">${p.patient_name||''}</span>
+            ${p.treatment?`<span style="color:var(--text-3)"> — ${p.treatment}</span>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <span class="chip ${pC}">${p.payment_status||''}</span>
+            <span style="font-weight:700;color:var(--purple)">${fmt(p.total)}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function onArchSearch(q) {
+  clearTimeout(searchTimer);
+  const resEl = document.getElementById('archSearchResults');
+  if (!q || q.length < 2) { resEl.classList.remove('show'); return; }
+
+  searchTimer = setTimeout(async () => {
+    let results = null;
+    if (APP.apiUrl) results = await apiGet({ action: 'searchPatient', q });
+    if (!results) {
+      // Local search
+      const all = getAllLocalVisits();
+      const seen = new Set();
+      results = [];
+      all.filter(v => (v.patient_name||'').includes(q)).forEach(v => {
+        if (!seen.has(v.patient_name)) {
+          seen.add(v.patient_name);
+          results.push({ patient_name: v.patient_name, last_visit: v.date, last_treat: v.treatment });
+        }
+      });
+    }
+    if (!results || !results.length) { resEl.classList.remove('show'); return; }
+
+    resEl.innerHTML = results.map(r => `
+      <div class="sr-item" onclick="filterByPatient('${r.patient_name}')">
+        <div class="sr-name">👤 ${r.patient_name}</div>
+        <div class="sr-sub">آخر زيارة: ${r.last_visit||'—'} ${r.last_treat?'| '+r.last_treat:''} ${r.total_visits?'| '+r.total_visits+' زيارة':''}</div>
+      </div>`).join('');
+    resEl.classList.add('show');
+  }, 400);
+}
+
+function filterByPatient(name) {
+  document.getElementById('archSearch').value = name;
+  document.getElementById('archSearchResults').classList.remove('show');
+  // Load all and filter
+  loadArchiveByPatient(name);
+}
+
+async function loadArchiveByPatient(name) {
+  const container = document.getElementById('archiveList');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>جاري البحث...</div>';
+  let visits = [];
+  if (APP.apiUrl) {
+    const allVisits = await apiGet({ action: 'searchPatient', q: name }) || [];
+    visits = allVisits;
+    // Load detailed visits for this patient
+    const all = await apiGet({ action: 'getVisits', month: '' });
+    if (all) visits = all.filter(v => (v.patient_name||'').includes(name));
+  }
+  if (!visits.length) visits = getAllLocalVisits().filter(v => (v.patient_name||'').includes(name));
+
+  if (!visits.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-ico">🔍</div><div class="empty-txt">لم يُعثر على زيارات لـ "${name}"</div></div>`;
+    return;
+  }
+
+  const tot = visits.reduce((s,v)=>s+(+v.total||0),0);
+  container.innerHTML = `
+    <div class="card" style="border-color:rgba(6,197,217,.25);margin-bottom:14px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">👤 ${name}</div>
+      <div style="font-size:13px;color:var(--text-3)">${visits.length} زيارة | إجمالي: <span style="color:var(--purple);font-weight:700">${fmt(tot)} IQD</span></div>
+    </div>` +
+    visits.sort((a,b)=>b.date?.localeCompare(a.date||'')).map(v => {
+      const pC = v.payment_status==='مدفوع'?'c-green':v.payment_status==='جزئي'?'c-amber':'c-red';
+      return `<div class="li">
+        <div class="li-ico" style="background:var(--cyan-glow)">🦷</div>
+        <div class="li-body">
+          <div class="li-title">${v.treatment||'—'}</div>
+          <div class="li-sub">📅 ${v.date||''}</div>
+        </div>
+        <div class="li-end">
+          <span class="chip ${pC}">${v.payment_status||''}</span>
+          <span style="font-weight:700;color:var(--purple)">${fmt(v.total)}</span>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════
+
+async function loadStats() {
+  const month     = document.getElementById('statsMonthFilter').value;
+  const container = document.getElementById('statsContent');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>جاري الحساب...</div>';
+
+  let stats = null;
+  if (APP.apiUrl) stats = await apiGet({ action: 'getMonthStats', month });
+
+  // Fallback: calculate locally
+  if (!stats) stats = calcLocalStats(month);
+
+  if (!stats || !stats.total_visits) {
+    container.innerHTML = `<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">لا بيانات لهذا الشهر</div></div>`;
+    return;
+  }
+
+  const paidPct = stats.total_visits ? Math.round(stats.paid / stats.total_visits * 100) : 0;
+
+  container.innerHTML = `
+    <!-- KPI Grid -->
+    <div class="g2">
+      <div class="stat-card"><div class="stat-lbl">👥 إجمالي المراجعين</div><div class="stat-val c-c">${stats.total_visits}</div></div>
+      <div class="stat-card"><div class="stat-lbl">💰 إجمالي الحسابات</div><div class="stat-val c-p" style="font-size:17px">${fmt(stats.total_revenue)}</div><div class="stat-sub">IQD</div></div>
+      <div class="stat-card"><div class="stat-lbl">👨‍⚕️ حصة الطبيب</div><div class="stat-val c-g" style="font-size:17px">${fmt(stats.doc_total)}</div></div>
+      <div class="stat-card"><div class="stat-lbl">🏥 صافي العيادة</div><div class="stat-val c-a" style="font-size:17px">${fmt(stats.clinic_total)}</div></div>
+      <div class="stat-card"><div class="stat-lbl">📅 أيام العمل</div><div class="stat-val" style="color:var(--purple)">${stats.work_days}</div></div>
+      <div class="stat-card"><div class="stat-lbl">📈 متوسط يومي</div><div class="stat-val c-c">${stats.avg_per_day}</div></div>
+    </div>
+
+    <!-- Payment breakdown -->
+    <div class="stat-sec">
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px">💳 حالة الدفع</div>
+      <div class="stat-row"><span>✅ مدفوع</span><span class="sv c-g">${stats.paid}</span></div>
+      <div class="stat-row"><span>💛 جزئي</span><span class="sv c-a">${stats.partial}</span></div>
+      <div class="stat-row"><span>❌ غير مدفوع</span><span class="sv c-r">${stats.unpaid}</span></div>
+      <div class="stat-row"><span>📊 نسبة التحصيل</span><span class="sv c-g">${paidPct}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${paidPct}%;background:linear-gradient(90deg,var(--green),var(--cyan))"></div></div>
+    </div>
+
+    <!-- Financial detail -->
+    <div class="stat-sec">
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px">📊 التفاصيل المالية</div>
+      <div class="stat-row"><span>متوسط الجلسة</span><span class="sv">${fmt(stats.avg_per_visit)} IQD</span></div>
+      <div class="stat-row"><span>تكلفة المواد</span><span class="sv c-r">${fmt(stats.total_materials)} IQD</span></div>
+      <div class="stat-row"><span>نسبة المواد</span><span class="sv">${stats.total_revenue ? Math.round(stats.total_materials/stats.total_revenue*100) : 0}%</span></div>
+    </div>
+
+    <!-- Top treatments -->
+    ${stats.top_treatments?.length ? `
+    <div class="stat-sec">
+      <div style="font-size:13px;font-weight:800;margin-bottom:12px">🦷 أكثر العلاجات</div>
+      ${stats.top_treatments.map(t => {
+        const max = stats.top_treatments[0]?.count || 1;
+        const pct = Math.round(t.count / max * 100);
+        return `<div class="treat-row">
+          <div class="treat-name">${t.treatment}</div>
+          <div class="treat-bar"><div class="prog-wrap" style="margin:0"><div class="prog-bar" style="width:${pct}%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div></div>
+          <div class="treat-cnt">${t.count}</div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- Daily breakdown -->
+    ${stats.daily?.length ? `
+    <div class="sec-title" style="margin-top:4px">تفصيل يومي</div>
+    ${stats.daily.slice().reverse().map(d => `
+      <div class="li">
+        <div class="li-ico" style="background:var(--purple-glow)">📅</div>
+        <div class="li-body">
+          <div class="li-title">${d.date}</div>
+          <div class="li-sub">${d.visits} مراجع | 👨‍⚕️ ${fmt(Math.round(d.doc))}</div>
+        </div>
+        <div style="font-weight:700;color:var(--purple)">${fmt(d.revenue)}</div>
+      </div>`).join('')}` : ''}
+  `;
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════════════
+
+async function exportExcel() {
+  const month = document.getElementById('exportMonth').value;
+  closeModal('m-export');
+  toast('⏳ جاري التصدير...', '');
+
+  // Local export using data
+  let visits = null;
+  if (APP.apiUrl) visits = await apiGet({ action: 'getVisits', month });
+  if (!visits) visits = getAllLocalVisits().filter(v => v.date?.startsWith(month));
+
+  if (!visits.length) { toast('❌ لا بيانات لهذا الشهر', 'err'); return; }
+
+  // Build CSV (no xlsx library — pure HTML table trick)
+  const rows = [
+    ['#','التاريخ','المريض','العلاج','الحساب','المواد','حصة الطبيب','صافي العيادة','حالة الدفع','ملاحظات'],
+    ...visits.map((v,i) => [i+1, v.date, v.patient_name, v.treatment, v.total, v.materials, v.doc_share||'', v.clinic_net||'', v.payment_status, v.notes||''])
+  ];
+
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const bom  = '\uFEFF'; // BOM for Arabic support in Excel
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `clinic_${month}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ تم التصدير — افتحه بـ Excel', 'ok');
+}
+
+// ══════════════════════════════════════════════════════
+//  PATIENT SEARCH (in visit modal)
+// ══════════════════════════════════════════════════════
+
+async function onPatientSearch(q) {
+  clearTimeout(searchTimer);
+  const resEl = document.getElementById('patientSearchResults');
+  if (!q || q.length < 2) { resEl.classList.remove('show'); return; }
+
+  searchTimer = setTimeout(async () => {
+    let results = null;
+    if (APP.apiUrl) results = await apiGet({ action: 'searchPatient', q });
+    if (!results) {
+      const all  = getAllLocalVisits();
+      const seen = new Set();
+      results    = [];
+      all.filter(v => (v.patient_name||'').includes(q)).forEach(v => {
+        if (!seen.has(v.patient_name)) {
+          seen.add(v.patient_name);
+          results.push({ patient_name: v.patient_name, last_treat: v.treatment });
+        }
+      });
+    }
+    if (!results.length) { resEl.classList.remove('show'); return; }
+    resEl.innerHTML = results.map(r => `
+      <div class="sr-item" onclick="selectPatient('${r.patient_name}','${r.last_treat||''}')">
+        <div class="sr-name">👤 ${r.patient_name}</div>
+        ${r.last_treat?`<div class="sr-sub">آخر علاج: ${r.last_treat}</div>`:''}
+      </div>`).join('');
+    resEl.classList.add('show');
+  }, 350);
+}
+
+function selectPatient(name, lastTreat) {
+  document.getElementById('vPatientName').value = name;
+  document.getElementById('patientSearchResults').classList.remove('show');
+  if (lastTreat && !document.getElementById('vTreatment').value) {
+    document.getElementById('vTreatment').value = lastTreat;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  CALC PREVIEW
+// ══════════════════════════════════════════════════════
+
+function calcPreview() {
+  const total = parseFloat(document.getElementById('vTotal')?.value) || 0;
+  const mats  = parseFloat(document.getElementById('vMaterials')?.value) || 0;
+  const ratio = parseFloat(APP.settings.doc_ratio || 0.5);
+  const net   = total - mats;
+  const doc   = Math.round(net * ratio);
+  const cnet  = Math.round(net * (1 - ratio));
+  const el = document.getElementById('calcPreview');
+  if (!el) return;
+  document.getElementById('prevDoc').textContent   = fmt(doc);
+  document.getElementById('prevNet').textContent   = fmt(cnet);
+  document.getElementById('prevRatio').textContent = Math.round(ratio * 100) + '%';
+}
+
+function selectPay(val, btn) {
+  paymentSelected = val;
+  document.querySelectorAll('.pay-btn').forEach(b => {
+    b.classList.toggle('sel',   b === btn);
+    b.classList.toggle('unsel', b !== btn);
+  });
+  document.getElementById('partialGroup').style.display = val === 'جزئي' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════════════
+//  LOCAL STORAGE (offline mode)
+// ══════════════════════════════════════════════════════
+
+function saveLocalVisits() {
+  const today = getToday();
+  const all   = JSON.parse(localStorage.getItem('clinic_visits') || '{}');
+  all[today]  = APP.todayVisits;
+  localStorage.setItem('clinic_visits', JSON.stringify(all));
+}
+
+function getLocalVisits(date) {
+  const all = JSON.parse(localStorage.getItem('clinic_visits') || '{}');
+  return all[date] || [];
+}
+
+function getAllLocalVisits() {
+  const all  = JSON.parse(localStorage.getItem('clinic_visits') || '{}');
+  const flat = [];
+  Object.keys(all).sort().reverse().forEach(d => {
+    (all[d] || []).forEach(v => flat.push({ ...v, date: v.date || d }));
+  });
+  return flat;
+}
+
+function calcLocalStats(month) {
+  const visits = getAllLocalVisits().filter(v => v.date?.startsWith(month));
+  if (!visits.length) return null;
+  const r = (key) => visits.reduce((s,v)=>s+(+v[key]||0),0);
+  const ratio    = parseFloat(APP.settings.doc_ratio || 0.5);
+  const totalRev = r('total');
+  const totalMat = r('materials');
+  const net      = totalRev - totalMat;
+  const docTotal = visits.reduce((s,v)=>s+(+v.doc_share||(+v.total-+v.materials)*ratio||0),0);
+  const cliTotal = visits.reduce((s,v)=>s+(+v.clinic_net||(+v.total-+v.materials)*(1-ratio)||0),0);
+  const byDay = {};
+  visits.forEach(v=>{const d=v.date;if(!byDay[d])byDay[d]={date:d,visits:0,revenue:0,doc:0,clinic:0};byDay[d].visits++;byDay[d].revenue+=+v.total||0;byDay[d].doc+=+v.doc_share||0;byDay[d].clinic+=+v.clinic_net||0;});
+  const tc = {};
+  visits.forEach(v=>{if(v.treatment)tc[v.treatment]=(tc[v.treatment]||0)+1;});
+  return {
+    month, total_visits:visits.length,
+    total_revenue:Math.round(totalRev), total_materials:Math.round(totalMat),
+    doc_total:Math.round(docTotal), clinic_total:Math.round(cliTotal),
+    paid:visits.filter(v=>v.payment_status==='مدفوع').length,
+    unpaid:visits.filter(v=>v.payment_status==='غير مدفوع').length,
+    partial:visits.filter(v=>v.payment_status==='جزئي').length,
+    work_days:Object.keys(byDay).length,
+    avg_per_day: Math.round(visits.length/Math.max(Object.keys(byDay).length,1)*10)/10,
+    avg_per_visit: visits.length ? Math.round(totalRev/visits.length) : 0,
+    daily:Object.values(byDay).sort((a,b)=>a.date.localeCompare(b.date)),
+    top_treatments:Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t,c])=>({treatment:t,count:c})),
+  };
+}
+
+function saveLocalAppt(body) {
+  const all = JSON.parse(localStorage.getItem('clinic_appts') || '[]');
+  const idx = all.findIndex(a => a.appt_id === body.appt_id);
+  if (idx > -1) all[idx] = body;
+  else all.push({ ...body, appt_id: 'LA' + Date.now() });
+  localStorage.setItem('clinic_appts', JSON.stringify(all));
+}
+
+function getLocalAppts(date) {
+  const all = JSON.parse(localStorage.getItem('clinic_appts') || '[]');
+  return all.filter(a => a.date === date);
+}
+
+function deleteLocalAppt(apptId) {
+  const all = JSON.parse(localStorage.getItem('clinic_appts') || '[]');
+  localStorage.setItem('clinic_appts', JSON.stringify(all.filter(a => a.appt_id !== apptId)));
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+
+function goTo(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  document.getElementById('sc-' + name).classList.add('active');
+  document.querySelector(`[data-s="${name}"]`).classList.add('active');
+  document.getElementById('fabBtn').style.display = name === 'today' ? 'flex' : 'none';
+  APP.currentView = name;
+
+  if (name === 'appt')    loadAppts();
+  if (name === 'archive') loadArchive();
+  if (name === 'stats')   loadStats();
+}
+
+// ══════════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════════
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeOuter(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+function runConfirm() {
+  document.getElementById('confirmBox').classList.remove('open');
+  if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+}
+
+function closeConfirm() {
+  document.getElementById('confirmBox').classList.remove('open');
+  confirmCallback = null;
+}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+
+let toastTimer = null;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// Click outside search results to close
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
+  }
+});
+
+// ══ SERVICE WORKER ══
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(e => console.log('SW:', e));
+  });
+}
+
+// ══ iOS INSTALL BANNER ══
+(function() {
+  const isIOS       = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari    = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isStandalone= window.navigator.standalone;
+  const dismissed   = localStorage.getItem('install_dismissed');
+  if (isIOS && isSafari && !isStandalone && !dismissed) {
+    setTimeout(() => {
+      const b = document.createElement('div');
+      b.style.cssText = 'position:fixed;bottom:calc(76px + env(safe-area-inset-bottom) + 10px);left:50%;transform:translateX(-50%);background:rgba(17,30,54,0.97);border:1px solid rgba(6,197,217,0.3);border-radius:16px;padding:14px 18px;width:calc(100% - 28px);max-width:460px;z-index:400;backdrop-filter:blur(20px);display:flex;align-items:center;gap:13px;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:Tajawal,sans-serif';
+      b.innerHTML = '<span style="font-size:26px">🦷</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#e8f0ff;margin-bottom:2px">ثبّت التطبيق على شاشتك</div><div style="font-size:11px;color:rgba(232,240,255,0.5);line-height:1.5">اضغط <b style="color:#06c5d9">□↑</b> ثم <b style="color:#06c5d9">Add to Home Screen</b></div></div><button onclick="this.parentNode.remove();localStorage.setItem(\'install_dismissed\',\'1\')" style="background:none;border:none;color:rgba(232,240,255,0.4);font-size:20px;cursor:pointer">✕</button>';
+      document.body.appendChild(b);
+    }, 2500);
+  }
+})();
+
+// ══ ANDROID INSTALL PROMPT ══
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    if (document.getElementById('install-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'install-btn';
+    btn.className = 'btn btn-primary';
+    btn.style.cssText = 'margin-bottom:10px';
+    btn.textContent = '📲 تثبيت التطبيق على الجهاز';
+    btn.onclick = async () => {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') btn.remove();
+      deferredPrompt = null;
+    };
+    const sc = document.getElementById('sc-more');
+    const firstCard = sc && sc.querySelector('.card');
+    if (firstCard) firstCard.parentNode.insertBefore(btn, firstCard);
+  }, 800);
+});
+</script>
+</body>
+</html>
